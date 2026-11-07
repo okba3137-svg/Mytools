@@ -4,65 +4,104 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>أدواتي</title>
-    <!-- ربط ملف الإعدادات -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2b2b2b">
     <style>
+        /* التصميم الأساسي للصفحة */
         body { font-family: system-ui, sans-serif; background: #1a1a1a; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
         .card { background: #2b2b2b; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); max-width: 90%; width: 350px; }
         h1 { margin-top: 0; color: #4CAF50; }
-        
-        /* تصميم زر التثبيت (مخفي افتراضياً) */
-        #installAppBtn { display: none; background: #4CAF50; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 20px; width: 100%; transition: background 0.3s; }
-        #installAppBtn:hover { background: #45a049; }
+
+        /* === تصميم الشعار المنبثق (البانر) === */
+        #installBanner {
+            display: none; /* مخفي افتراضياً حتى يكتشف المتصفح الدعم */
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #2b2b2b;
+            padding: 12px 15px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+            border: 1px solid #4CAF50;
+            z-index: 9999;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .banner-info { display: flex; align-items: center; gap: 12px; }
+        .banner-icon { width: 45px; height: 45px; border-radius: 10px; }
+        .banner-text { text-align: right; }
+        .banner-text h3 { margin: 0; font-size: 15px; color: #fff; }
+        .banner-text p { margin: 3px 0 0 0; font-size: 12px; color: #aaa; }
+        .banner-actions { display: flex; align-items: center; gap: 10px; }
+        .install-btn { background: #4CAF50; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .close-btn { background: transparent; color: #888; border: none; font-size: 24px; cursor: pointer; padding: 0; line-height: 1; margin-right: 5px; }
     </style>
 </head>
 <body>
 
+    <!-- محتوى التطبيق العادي -->
     <div class="card">
         <h1>أدواتي 🚀</h1>
-        <p>أهلاً بك في تطبيقك الخاص.</p>
-        
-        <!-- هذا الزر سيظهر تلقائياً عندما يتأكد المتصفح أن التطبيق جاهز -->
-        <button id="installAppBtn">تثبيت التطبيق على الهاتف</button>
+        <p>التطبيق يعمل بنجاح!</p>
+    </div>
+
+    <!-- === الشعار المنبثق الذي سيظهر أسفل الشاشة === -->
+    <div id="installBanner">
+        <div class="banner-info">
+            <!-- تأكد أن صورة الأيقونة موجودة بجانب الملف باسم icon.png -->
+            <img src="icon.png" alt="أيقونة التطبيق" class="banner-icon">
+            <div class="banner-text">
+                <h3>أدواتي</h3>
+                <p>ثبّت التطبيق للوصول السريع</p>
+            </div>
+        </div>
+        <div class="banner-actions">
+            <button class="install-btn" id="installBtn">تنزيل</button>
+            <button class="close-btn" id="closeBtn">&times;</button>
+        </div>
     </div>
 
     <script>
-        // 1. تسجيل ملف Service Worker (مهم جداً لكي يقبل الهاتف تثبيت التطبيق)
+        // 1. تسجيل ملف الخلفية (sw.js)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('تم تسجيل ملف sw.js بنجاح'))
-                    .catch(err => console.error('فشل تسجيل ملف sw.js', err));
+                navigator.serviceWorker.register('sw.js');
             });
         }
 
-        // 2. كود إظهار زر التثبيت
+        // 2. أوامر إظهار وإخفاء الشعار المنبثق
         let deferredPrompt;
-        const installAppBtn = document.getElementById('installAppBtn');
+        const installBanner = document.getElementById('installBanner');
+        const installBtn = document.getElementById('installBtn');
+        const closeBtn = document.getElementById('closeBtn');
 
-        // التقاط حدث التثبيت من المتصفح
+        // عندما يكون المتصفح جاهزاً للتثبيت، نظهر الشعار الخاص بنا
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault(); // منع ظهور الإشعار الصغير الافتراضي
-            deferredPrompt = e; // حفظ الحدث
-            installAppBtn.style.display = 'block'; // إظهار زر التثبيت الخاص بنا
+            e.preventDefault(); 
+            deferredPrompt = e; 
+            installBanner.style.display = 'flex'; // إظهار الشعار
         });
 
-        // تنفيذ التثبيت عند الضغط على الزر
-        installAppBtn.addEventListener('click', async () => {
+        // عند الضغط على زر "تنزيل" داخل الشعار
+        installBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
-                deferredPrompt.prompt(); // إظهار نافذة التثبيت الرسمية من النظام
+                deferredPrompt.prompt(); // إظهار نافذة التثبيت الخاصة بنظام أندرويد
                 const { outcome } = await deferredPrompt.userChoice;
-                console.log(`نتيجة التثبيت: ${outcome}`);
-                deferredPrompt = null; // تفريغ الحدث
-                installAppBtn.style.display = 'none'; // إخفاء الزر بعد الضغط
+                deferredPrompt = null;
+                installBanner.style.display = 'none'; // إخفاء الشعار بعد الضغط
             }
         });
 
-        // إخفاء الزر نهائياً إذا تم التثبيت مسبقاً
+        // عند الضغط على علامة (X) لإغلاق الشعار
+        closeBtn.addEventListener('click', () => {
+            installBanner.style.display = 'none';
+        });
+
+        // إخفاء الشعار تماماً إذا كان التطبيق مثبتاً بالفعل على الهاتف
         window.addEventListener('appinstalled', () => {
-            installAppBtn.style.display = 'none';
-            console.log('التطبيق مثبت بالفعل على جهازك');
+            installBanner.style.display = 'none';
         });
     </script>
 </body>

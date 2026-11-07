@@ -4,81 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>أدواتي</title>
-    <!-- 1. ربط ملف الإعدادات -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#2b2b2b"/>
+    <!-- ربط ملف الإعدادات -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2b2b2b">
     <style>
-        body { font-family: system-ui; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #1a1a1a; color: white; }
-        .card { background: #2b2b2b; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        button { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 15px; }
+        body { font-family: system-ui, sans-serif; background: #1a1a1a; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: #2b2b2b; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); max-width: 90%; width: 350px; }
+        h1 { margin-top: 0; color: #4CAF50; }
+        
+        /* تصميم زر التثبيت (مخفي افتراضياً) */
+        #installAppBtn { display: none; background: #4CAF50; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 20px; width: 100%; transition: background 0.3s; }
+        #installAppBtn:hover { background: #45a049; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>تطبيقي الأول 🚀</h1>
-        <h2 id="clock" style="color: #4CAF50; font-size: 2.5rem; margin: 10px 0;">00:00:00</h2>
-        <button onclick="alert('التطبيق يعمل بكفاءة، حتى بدون إنترنت!')">اختبر التفاعل</button>
-   <!-- زر التثبيت (سيكون مخفياً في البداية حتى يتأكد الكود من الدعم) -->
-<button id="installAppBtn" style="display: none; background: #4CAF50; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 20px; width: 100%;">تثبيت التطبيق</button>
 
+    <div class="card">
+        <h1>أدواتي 🚀</h1>
+        <p>أهلاً بك في تطبيقك الخاص.</p>
+        
+        <!-- هذا الزر سيظهر تلقائياً عندما يتأكد المتصفح أن التطبيق جاهز -->
+        <button id="installAppBtn">تثبيت التطبيق على الهاتف</button>
     </div>
-<!-- شريط التثبيت (سيكون مخفياً في البداية حتى يتأكد الكود أن الهاتف يدعم التثبيت) -->
-<div id="installBanner" style="display: none; background: #2b2b2b; color: white; padding: 15px; text-align: center; position: fixed; bottom: 0; left: 0; width: 100%; box-sizing: border-box; z-index: 1000; border-top: 2px solid #4CAF50; font-family: system-ui;">
-    <p style="margin: 0 0 10px 0; font-size: 16px;">قم بتثبيت تطبيق "أدواتي" للوصول السريع وبدون إنترنت!</p>
-    <button id="installBtn" style="background: #4CAF50; color: white; border: none; padding: 8px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px;">تثبيت التطبيق</button>
-    <button onclick="document.getElementById('installBanner').style.display='none'" style="background: transparent; color: #ccc; border: 1px solid #ccc; padding: 8px 15px; margin-right: 10px; border-radius: 5px; cursor: pointer;">لاحقاً</button>
-</div>
 
     <script>
-        // ساعة رقمية بسيطة
-        setInterval(() => {
-            document.getElementById('clock').innerText = new Date().toLocaleTimeString('ar-SA');
-        }, 1000);
-
-        // 2. تفعيل العمل بدون إنترنت (Service Worker)
+        // 1. تسجيل ملف Service Worker (مهم جداً لكي يقبل الهاتف تثبيت التطبيق)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js');
-        
-        });
-  
-        let deferredPrompt;
-const installAppBtn = document.getElementById('installAppBtn');
-
-// 1. التقاط الحدث عندما يكون التطبيق جاهزاً للتثبيت
-window.addEventListener('beforeinstallprompt', (e) => {
-    // منع المتصفح من إظهار أي نوافذ عشوائية
-    e.preventDefault();
-    // حفظ الحدث
-    deferredPrompt = e;
-    // إظهار زر التثبيت الخاص بنا للمستخدم
-    installAppBtn.style.display = 'block';
-});
-
-// 2. تشغيل التثبيت عند الضغط على الزر
-installAppBtn.addEventListener('click', async () => {
-    if (deferredPrompt) {
-        // إظهار نافذة التثبيت الرسمية من النظام
-        deferredPrompt.prompt();
-        // انتظار رد المستخدم
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User choice: ${outcome}`);
-        // مسح الحدث وإخفاء الزر بعد الاختيار
-        deferredPrompt = null;
-        installAppBtn.style.display = 'none';
-    }
-});
-
-// 3. إخفاء الزر نهائياً إذا تم التثبيت
-window.addEventListener('appinstalled', () => {
-    installAppBtn.style.display = 'none';
-    console.log('App installed successfully');
-});
-
-
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('تم تسجيل ملف sw.js بنجاح'))
+                    .catch(err => console.error('فشل تسجيل ملف sw.js', err));
+            });
         }
+
+        // 2. كود إظهار زر التثبيت
+        let deferredPrompt;
+        const installAppBtn = document.getElementById('installAppBtn');
+
+        // التقاط حدث التثبيت من المتصفح
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); // منع ظهور الإشعار الصغير الافتراضي
+            deferredPrompt = e; // حفظ الحدث
+            installAppBtn.style.display = 'block'; // إظهار زر التثبيت الخاص بنا
+        });
+
+        // تنفيذ التثبيت عند الضغط على الزر
+        installAppBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt(); // إظهار نافذة التثبيت الرسمية من النظام
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`نتيجة التثبيت: ${outcome}`);
+                deferredPrompt = null; // تفريغ الحدث
+                installAppBtn.style.display = 'none'; // إخفاء الزر بعد الضغط
+            }
+        });
+
+        // إخفاء الزر نهائياً إذا تم التثبيت مسبقاً
+        window.addEventListener('appinstalled', () => {
+            installAppBtn.style.display = 'none';
+            console.log('التطبيق مثبت بالفعل على جهازك');
+        });
     </script>
-
-
 </body>
 </html>

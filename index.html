@@ -43,42 +43,42 @@
         });
   
         let deferredPrompt;
-const installBanner = document.getElementById('installBanner');
-const installBtn = document.getElementById('installBtn');
+const installAppBtn = document.getElementById('installAppBtn');
 
-// 1. التقاط الحدث عندما يقرأ المتصفح أن التطبيق قابل للتثبيت
+// 1. التقاط الحدث عندما يكون التطبيق جاهزاً للتثبيت
 window.addEventListener('beforeinstallprompt', (e) => {
-    // منع المتصفح من عرض الإشعار الافتراضي الصغير
+    // منع المتصفح من إظهار أي نوافذ عشوائية
     e.preventDefault();
-    // حفظ الحدث لاستخدامه عند ضغط المستخدم على الزر
+    // حفظ الحدث
     deferredPrompt = e;
-    // إظهار الشريط الذي قمنا بتصميمه (تلقائياً فور توفر الحدث)
-    installBanner.style.display = 'block';
+    // إظهار زر التثبيت الخاص بنا للمستخدم
+    installAppBtn.style.display = 'block';
 });
 
-// 2. تفعيل نافذة التثبيت الرسمية عند الضغط على زرنا
-installBtn.addEventListener('click', async () => {
-    // إخفاء الشريط الخاص بنا
-    installBanner.style.display = 'none';
-    
-    // إظهار نافذة التثبيت الرسمية الخاصة بنظام أندرويد
+// 2. تشغيل التثبيت عند الضغط على الزر
+installAppBtn.addEventListener('click', async () => {
     if (deferredPrompt) {
+        // إظهار نافذة التثبيت الرسمية من النظام
         deferredPrompt.prompt();
-        // انتظار رد المستخدم (هل ضغط تثبيت أم إلغاء؟)
+        // انتظار رد المستخدم
         const { outcome } = await deferredPrompt.userChoice;
-        console.log(`نتيجة التثبيت: ${outcome}`);
-        // تفريغ المتغير لأنه يُستخدم مرة واحدة فقط
+        console.log(`User choice: ${outcome}`);
+        // مسح الحدث وإخفاء الزر بعد الاختيار
         deferredPrompt = null;
+        installAppBtn.style.display = 'none';
     }
 });
 
-// 3. إخفاء الشريط نهائياً إذا كان التطبيق مثبتاً بالفعل
+// 3. إخفاء الزر نهائياً إذا تم التثبيت
 window.addEventListener('appinstalled', () => {
-    installBanner.style.display = 'none';
-    console.log('تم تثبيت التطبيق بنجاح');
+    installAppBtn.style.display = 'none';
+    console.log('App installed successfully');
 });
+
 
         }
     </script>
+
+
 </body>
 </html>

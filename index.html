@@ -19,6 +19,12 @@
         <h2 id="clock" style="color: #4CAF50; font-size: 2.5rem; margin: 10px 0;">00:00:00</h2>
         <button onclick="alert('التطبيق يعمل بكفاءة، حتى بدون إنترنت!')">اختبر التفاعل</button>
     </div>
+<!-- شريط التثبيت (سيكون مخفياً في البداية حتى يتأكد الكود أن الهاتف يدعم التثبيت) -->
+<div id="installBanner" style="display: none; background: #2b2b2b; color: white; padding: 15px; text-align: center; position: fixed; bottom: 0; left: 0; width: 100%; box-sizing: border-box; z-index: 1000; border-top: 2px solid #4CAF50; font-family: system-ui;">
+    <p style="margin: 0 0 10px 0; font-size: 16px;">قم بتثبيت تطبيق "أدواتي" للوصول السريع وبدون إنترنت!</p>
+    <button id="installBtn" style="background: #4CAF50; color: white; border: none; padding: 8px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px;">تثبيت التطبيق</button>
+    <button onclick="document.getElementById('installBanner').style.display='none'" style="background: transparent; color: #ccc; border: 1px solid #ccc; padding: 8px 15px; margin-right: 10px; border-radius: 5px; cursor: pointer;">لاحقاً</button>
+</div>
 
     <script>
         // ساعة رقمية بسيطة
@@ -30,7 +36,45 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js');
-            });
+        
+        });
+  
+        let deferredPrompt;
+const installBanner = document.getElementById('installBanner');
+const installBtn = document.getElementById('installBtn');
+
+// 1. التقاط الحدث عندما يقرأ المتصفح أن التطبيق قابل للتثبيت
+window.addEventListener('beforeinstallprompt', (e) => {
+    // منع المتصفح من عرض الإشعار الافتراضي الصغير
+    e.preventDefault();
+    // حفظ الحدث لاستخدامه عند ضغط المستخدم على الزر
+    deferredPrompt = e;
+    // إظهار الشريط الذي قمنا بتصميمه (تلقائياً فور توفر الحدث)
+    installBanner.style.display = 'block';
+});
+
+// 2. تفعيل نافذة التثبيت الرسمية عند الضغط على زرنا
+installBtn.addEventListener('click', async () => {
+    // إخفاء الشريط الخاص بنا
+    installBanner.style.display = 'none';
+    
+    // إظهار نافذة التثبيت الرسمية الخاصة بنظام أندرويد
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        // انتظار رد المستخدم (هل ضغط تثبيت أم إلغاء؟)
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`نتيجة التثبيت: ${outcome}`);
+        // تفريغ المتغير لأنه يُستخدم مرة واحدة فقط
+        deferredPrompt = null;
+    }
+});
+
+// 3. إخفاء الشريط نهائياً إذا كان التطبيق مثبتاً بالفعل
+window.addEventListener('appinstalled', () => {
+    installBanner.style.display = 'none';
+    console.log('تم تثبيت التطبيق بنجاح');
+});
+
         }
     </script>
 </body>
